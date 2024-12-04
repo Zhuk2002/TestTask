@@ -6,6 +6,12 @@ namespace TestTask
     public class ReadOnlyStream : IReadOnlyStream
     {
         private Stream _localStream;
+        private StreamReader _localStreamReader;
+
+        ~ReadOnlyStream()
+        {
+            Dispose();
+        }
 
         /// <summary>
         /// Конструктор класса. 
@@ -15,10 +21,15 @@ namespace TestTask
         /// <param name="fileFullPath">Полный путь до файла для чтения</param>
         public ReadOnlyStream(string fileFullPath)
         {
-            IsEof = true;
-
-            // TODO : Заменить на создание реального стрима для чтения файла!
-            _localStream = null;
+            try
+            {
+                _localStream = File.OpenRead(fileFullPath);
+                _localStreamReader = new StreamReader(_localStream);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Can't open file {fileFullPath}", ex);
+            }
         }
                 
         /// <summary>
@@ -26,7 +37,7 @@ namespace TestTask
         /// </summary>
         public bool IsEof
         {
-            get; // TODO : Заполнять данный флаг при достижении конца файла/стрима при чтении
+            get;
             private set;
         }
 
@@ -38,8 +49,13 @@ namespace TestTask
         /// <returns>Считанный символ.</returns>
         public char ReadNextChar()
         {
-            // TODO : Необходимо считать очередной символ из _localStream
-            throw new NotImplementedException();
+                var ch = _localStreamReader.Read();
+                if(ch == -1)
+                {
+                    IsEof = true;
+                    return '\0';
+                }
+                return (char)ch;
         }
 
         /// <summary>
@@ -47,7 +63,7 @@ namespace TestTask
         /// </summary>
         public void ResetPositionToStart()
         {
-            if (_localStream == null)
+            if (_localStreamReader == null)
             {
                 IsEof = true;
                 return;
@@ -55,6 +71,15 @@ namespace TestTask
 
             _localStream.Position = 0;
             IsEof = false;
+        }
+
+        /// <summary>
+        /// Освобождает ресурсы, используемые экземпляром ReadOnlyStream
+        /// </summary>
+        public void Dispose()
+        {
+            _localStream.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

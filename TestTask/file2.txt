@@ -1,0 +1,3 @@
+aa;aA;Aa;AA = 4
+bb BbB bbbb cbcb
+e ee eee....eeee e...ee  e; = 5
